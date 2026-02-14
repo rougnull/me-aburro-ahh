@@ -1,0 +1,349 @@
+# FlyWire Cell Types and Neural Circuit Components
+# Mapping from FlyWire cell IDs to biological nomenclature and circuit roles
+# 
+# References:
+# - Bates et al. 2020: "The connectome of the Drosophila central brain"
+# - Turner et al. 2020: "Circuit analysis of the Drosophila antennal lobe"
+# - Takemura et al. 2017: "Synaptic circuits and their variations"
+
+# ============================================================================
+# OLFACTORY RECEPTOR NEURONS (ORN)
+# ============================================================================
+# - Peripheral sensory neurons with axons projecting to antennal lobe
+# - Each OR type responds to specific odor molecules
+# - Send synaptic input to projection neurons in antennal lobe
+
+ORN:
+  description: "Olfactory Receptor Neurons - peripheral odor sensors"
+  count_in_model: 50
+  count_in_brain: 1000  # ~1000 ORNs in Drosophila
+  biological_role: "Peripheral chemoreceptors, odor detection"
+  recording_available: true
+  
+  subtypes:
+    - id: "Or22a"
+      description: "Responds to ethyl acetate (fruit odor)"
+      neural_representation: 10  # neurons per type in model
+    - id: "Or23a"
+      description: "Responds to ethyl acetate (fruit odor)"
+      neural_representation: 10
+    - id: "Or42b"
+      description: "Responds to formic acid (organic acids)"
+      neural_representation: 10
+    - id: "Or59b"
+      description: "Responds to skatole (fecal odor)"
+      neural_representation: 10
+    - id: "Or49b"
+      description: "Responds to 2-methylphenol (wood/bark)"
+      neural_representation: 10
+
+
+# ============================================================================
+# PROJECTION NEURONS (PN)
+# ============================================================================
+# - Second-order olfactory neurons in antennal lobe
+# - Receive input from ORNs, project to mushroom body
+# - Perform lateral inhibition via local neurons
+# - Show gain modulation based on behavioral context
+
+PN:
+  description: "Projection Neurons - antennal lobe output"
+  count_in_model: 50
+  count_in_brain: ~300  # ~60 normal + ~240 local neurons in AL
+  biological_role: "Odor feature computation, gain modulation"
+  
+  connectivity:
+    input_from:
+      ORN: "1:1 or glomerular organization (~3 ORNs per PN)"
+    output_to:
+      KC: "Random sparse (~2% connectivity)"
+      PN: "Lateral inhibition via local neurons"
+  
+  neural_properties:
+    spike_threshold_mv: -50
+    resting_potential_mv: -70
+    tau_membrane_ms: 15  # Time constant
+    refractory_period_ms: 2
+
+
+# ============================================================================
+# KENYON CELLS (KC)
+# ============================================================================
+# - Intrinsic mushroom body neurons
+# - Sparse representation (~2% PN→KC sparsity produces ~5 PN inputs per KC)
+# - High dimensional representation of odors
+# - Subject to learning via dopaminergic reinforcement
+
+KC:
+  description: "Kenyon Cells - mushroom body intrinsic neurons"
+  count_in_model: 2000
+  count_in_brain: ~2000  # Matches real Drosophila
+  biological_role: "Sparse odor representation, learning substrate"
+  
+  connectivity:
+    input_from:
+      PN: "Sparse random (~2% connectivity = ~3 PN inputs/KC)"
+      MBON: "Feedback from output neurons (learning gating)"
+    output_to:
+      MBON: "Dense convergence (~60 KCs per MBON typical)"
+      KC: "Rare (lateral inhibition weak in mushroom body)"
+  
+  learning_properties:
+    dopamine_responsive: true
+    plasticity_rules:
+      - name: "Hebbian (+)"
+        description: "Increase KC→MBON weight if coincident with dopamine"
+      - name: "Heterosynaptic (-)"
+        description: "Decrease other KC→MBON weights"
+  
+  neural_properties:
+    spike_threshold_mv: -50
+    resting_potential_mv: -70
+    tau_membrane_ms: 20
+    refractory_period_ms: 2
+
+
+# ============================================================================
+# MUSHROOM BODY OUTPUT NEURONS (MBON)
+# ============================================================================
+# - Descending output of mushroom body
+# - Integrate over multiple KCs
+# - Encode learned stimulus-outcome associations
+# - Send signals to descending neurons for motor control
+
+MBON:
+  description: "Mushroom Body Output Neurons - learned behavior encoding"
+  count_in_model: 50
+  count_in_brain: ~50  # Matches anatomical counts
+  biological_role: "Learned odor-behavior associations"
+  
+  subtypes:
+    - id: "MBON-γ1pedc"
+      description: "Approach/appetitive MBON"
+      learning_valence: "positive"
+      neural_representation: 15
+    - id: "MBON-γ2α'1"
+      description: "Avoidance/aversive MBON"
+      learning_valence: "negative"
+      neural_representation: 15
+    - id: "MBON-β'2mp"
+      description: "Approach (alternative pathway)"
+      learning_valence: "positive"
+      neural_representation: 10
+    - id: "MBON-α3"
+      description: "Context-dependent modulation"
+      learning_valence: "mixed"
+      neural_representation: 10
+  
+  connectivity:
+    input_from:
+      KC: "Convergent (~60 KCs per MBON typical)"
+    output_to:
+      DN: "Dense projection to descending neurons"
+      MBON: "Lateral inhibition between opposing MBONs"
+  
+  neural_properties:
+    spike_threshold_mv: -50
+    resting_potential_mv: -70
+    tau_membrane_ms: 25
+    refractory_period_ms: 2
+
+
+# ============================================================================
+# DESCENDING NEURONS (DN)
+# ============================================================================
+# - Motor command output neurons
+# - Integrate sensory, learned, and state information
+# - Project to thoracic ganglia for motor control
+# - Control walking, turning, flight behaviors
+
+DN:
+  description: "Descending Neurons - motor command output"
+  count_in_model: 10
+  count_in_brain: ~300  # ~10 anatomical classes × ~30 neurons each
+  biological_role: "Motor command generation, behavior selection"
+  
+  subtypes:
+    - id: "DNp01"
+      description: "Represents forward/approach motor command"
+      motor_output: "forward_velocity"
+      neural_representation: 3
+    - id: "DNp02"
+      description: "Represents turning/steering"
+      motor_output: "angular_velocity"
+      neural_representation: 3
+    - id: "DNp03"
+      description: "Represents retreat/avoidance"
+      motor_output: "backward_velocity"
+      neural_representation: 2
+    - id: "DNp04"
+      description: "Represents flight or stopping"
+      motor_output: "flight_toggle"
+      neural_representation: 2
+  
+  connectivity:
+    input_from:
+      MBON: "Major input from MBONs"
+      PN: "Direct olfactory input (for reflexive responses)"
+    output_to:
+      "Thoracic Motor Control": "Motoneurons and CPG circuits"
+  
+  neural_properties:
+    spike_threshold_mv: -50
+    resting_potential_mv: -70
+    tau_membrane_ms: 30
+    refractory_period_ms: 2
+
+
+# ============================================================================
+# SYNAPTIC PROPERTIES
+# ============================================================================
+# Default parameters for synaptic transmission
+
+synaptic_parameters:
+  
+  # ORN → PN
+  ORN_to_PN:
+    type: "excitatory"
+    neurotransmitter: "acetylcholine (fast)"
+    tau_ms: 3
+    reversal_potential_mv: 0
+    default_weight: 0.8  # Strong, reliable transmission
+  
+  # PN → KC
+  PN_to_KC:
+    type: "excitatory"
+    neurotransmitter: "acetylcholine"
+    tau_ms: 10
+    reversal_potential_mv: 0
+    default_weight: 0.3  # Weak, sparse connections
+    sparsity: 0.02  # 2% connectivity
+  
+  # KC → MBON
+  KC_to_MBON:
+    type: "excitatory"
+    neurotransmitter: "acetylcholine"
+    tau_ms: 20
+    reversal_potential_mv: 0
+    default_weight: 0.2  # Convergent weight averaging
+    learnable: true  # Subject to dopamine-dependent plasticity
+    sparsity: 0.06  # ~60 KCs per MBON
+  
+  # MBON → DN
+  MBON_to_DN:
+    type: "excitatory"
+    neurotransmitter: "acetylcholine"
+    tau_ms: 15
+    reversal_potential_mv: 0
+    default_weight: 0.5  # Medium strength
+    sparsity: 0.5  # Relatively dense
+  
+  # Lateral inhibition (PN → PN via local neurons)
+  PN_to_PN_inhibitory:
+    type: "inhibitory"
+    neurotransmitter: "GABA"
+    tau_ms: 5
+    reversal_potential_mv: -60
+    default_weight: -0.3
+  
+  # MBON ↔ MBON (lateral inhibition between opposing classes)
+  MBON_to_MBON_inhibitory:
+    type: "inhibitory"
+    neurotransmitter: "GABA"
+    tau_ms: 10
+    reversal_potential_mv: -60
+    default_weight: -0.2
+
+
+# ============================================================================
+# LAYER ORGANIZATION
+# ============================================================================
+# Hierarchical structure of the circuit
+
+circuit_layers:
+  layer_0:
+    name: "Sensory Input"
+    components: ["ORN"]
+    description: "Peripheral odor detection"
+  
+  layer_1:
+    name: "Antennal Lobe"
+    components: ["PN"]
+    description: "First olfactory processing, gain modulation"
+  
+  layer_2:
+    name: "Mushroom Body"
+    components: ["KC", "MBON"]
+    description: "Sparse coding of odors, learned associations"
+  
+  layer_3:
+    name: "Motor Output"
+    components: ["DN"]
+    description: "Behavioral command generation"
+
+
+# ============================================================================
+# RECORDED NEURAL ACTIVITY
+# ============================================================================
+# Typical neural activity patterns during odor navigation
+
+typical_firing_rates_hz:
+  ORN: 10  # Spontaneous + odor-evoked
+  PN: 8    # Lower baseline, strong responses
+  KC: 2    # Very sparse, 0-5% spikes active per timebin
+  MBON: 5  # Moderate, modulated by learning history
+  DN: 7    # High variability, task-dependent
+
+
+# ============================================================================
+# OPTIMIZATION PARAMETERS FOR DMN TRAINING
+# ============================================================================
+# Settings for differentiable mechanical network training
+
+training_priorities:
+  
+  # Which parameters to optimize
+  learnable_parameters:
+    - "KC_to_MBON_weights"  # Primary learning substrate
+    - "MBON_to_DN_weights"   # Secondary pathway learning
+    - "time_constants"       # Membrane properties
+    - "threshold_levels"     # Spike thresholds
+  
+  # Which connectivity to preserve
+  fixed_connectivity:
+    - "ORN_to_PN"  # Fixed by anatomy
+    - "PN_to_KC_mask"  # Sparsity pattern fixed, weights learnable
+  
+  # Loss function components
+  loss_components:
+    - component: "distance_to_goal"
+      weight: 1.0
+      description: "Minimize distance to food source"
+    - component: "energy_efficiency"
+      weight: 0.1
+      description: "Minimize velocity squared (energy cost)"
+    - component: "neural_sparsity"
+      weight: 0.01
+      description: "Maintain KC sparsity (~2% activity)"
+
+
+# ============================================================================
+# VALIDATION AND TESTING
+# ============================================================================
+
+validation_data:
+  - source: "Murthy et al. 2008"
+    metric: "PN response latency"
+    expected_range_ms: [50, 150]
+  
+  - source: "Turner et al. 2020"
+    metric: "PN → KC connection probability"
+    expected_range: [0.01, 0.04]
+  
+  - source: "Takemura et al. 2017"
+    metric: "KC→MBON convergence ratio"
+    expected_value: "60 KCs per MBON (typical)"
+  
+  - source: "Zheng et al. 2020"
+    metric: "KC sparsity during odor"
+    expected_sparsity: "98-99%"
