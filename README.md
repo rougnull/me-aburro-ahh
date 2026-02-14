@@ -1,25 +1,36 @@
-# NeuroMechFly 3D Embodied Simulation
+# NeuroMechFly: Differentiable Embodied Neuroscience
 
-Complete neural-driven fly simulation with realistic physics kinematics. Integrates biophysical olfactory circuit neural model, 3D skeletal body model with realistic leg kinematics, and embodied cognition in a virtual arena.
+Complete neural-driven fly simulation with **end-to-end learning via backpropagation through time (BPTT)**.
 
-## Overview
+Integrates:
+- Real FlyWire connectome data
+- Differentiable spiking neural networks (PyTorch)
+- Embodied physics simulation (NeuroMechFly interface)
+- Task-based optimization (navigation, energy efficiency)
 
-This project demonstrates integrating three core components into a unified embodied simulation:
+## What is NeuroMechFly DMN?
+
+**DMN = Differentiable Mechanical Networks**
+
+This framework transforms fixed-parameter simulation into **learning systems** that optimize neural circuits for behavioral tasks:
 
 ```
-SENSORY INPUT (Odor Gradient)
-          ↓
-     [NEURAL BRAIN]  ← Biophysical LIF neurons
-     ORN→KC→DN       ← Spiking network
-          ↓
-    [MOTOR CONTROL]  ← CPG-driven walking
-          ↓
-    [FLY BODY]       ← 3D skeleton kinematics
-          ↓
-    [PHYSICS]        ← Arena updates
-          ↓
-    New sensory state (closed-loop)
+NeuroMechFly Physics Engine ←→ Embodied Environment
+              ↑                        ↑
+              │                        │
+         Motor Commands ←→ Differentiable Neural Circuit
+              ↑                        ↑
+              └────────────────────────┘
+                   Backpropagation Through Time
+                        (Auto-differentiation)
+                              ↓
+                    Learn Synaptic Weights
+                    Minimize: Distance to Goal
+                             + Energy Cost
+                             + Sparsity Loss
 ```
+
+**Key Innovation**: Gradient descent discovers what neural mechanisms are necessary to navigate, solving the **inverse problem** of neurobiology.
 
 ## Features
 
@@ -42,51 +53,90 @@ SENSORY INPUT (Odor Gradient)
 - **Gaussian Odor Gradient**: Centered at [50, 50, 0] mm
 - **Diffusion Simulation**: Exponential falloff with distance
 
-## Installation
+## Installation & Setup
 
+### Step 1: PyTorch (2 min)
 ```bash
-# Create virtual environment  
-python -m venv .venv
-.\.venv\Scripts\activate  # Windows
-source .venv/bin/activate  # Linux/Mac
+# CPU version (no GPU needed)
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 
-# Install dependencies
-pip install numpy scipy h5py pyyaml matplotlib vispy PyQt6
+# Or GPU version for 10x speedup
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-## Quick Start
-
-### Demo (10 seconds, ~4 seconds runtime)
+### Step 2: Dependencies (1 min)
 ```bash
-python demo_embodied.py --duration 10
+pip install numpy scipy scikit-learn networkx h5py pyyaml matplotlib
 ```
 
-Shows real-time statistics:
-- Position tracking
-- Neural spike activity  
-- Behavioral metrics
-- Sensory input (odor)
-
-### Full Simulation (30 seconds with visualization)
+### Step 3: Verify Setup (2 min)
 ```bash
-python run_3d_simulation.py --duration 30
+python dmn_verify_setup.py
 ```
+
+## Quick Start - Train Embodied DMN
+
+### Basic Training (5 min on CPU, 30 sec on GPU)
+```bash
+# Train for 20 episodes (default)
+python train_embodied_dmn.py --num-episodes 20
+
+# Shows real-time loss, metrics, and results
+```
+
+Expected output:
+```
+Episode  1/20 | Loss:   12.3456 | Nav:    10.2341 | Energy:     0.0145
+Episode  5/20 | Loss:    8.1234 | Nav:     7.0234 | Energy:     0.0089
+Episode 20/20 | Loss:    2.1234 | Nav:     1.9876 | Energy:     0.0034
+
+Final Trajectory Metrics:
+  final_distance_to_goal: 2.3400
+  mean_distance_to_goal: 15.4200
+  total_distance_traveled: 45.2300
+
+✓ Results saved to embodied_training_results/
+```
+
+### Advanced Training with Custom Parameters
+```bash
+# Emphasize energy efficiency
+python train_embodied_dmn.py \
+  --num-episodes 50 \
+  --learning-rate 0.001 \
+  --nav-weight 1.0 \
+  --energy-weight 0.5
+
+# Or focus on pure navigation
+python train_embodied_dmn.py \
+  --num-episodes 100 \
+  --learning-rate 0.0001 \
+  --nav-weight 2.0 \
+  --energy-weight 0.01
+```
+
+## What Gets Learned?
+
+The training process learns:
+
+1. **Synaptic Weights** (ORN→PN, PN→KC, KC→MBON, MBON→DN)
+   - Which connections matter for navigation
+   - How strongly to weight inputs
+
+2. **Neuron Time Constants** (τ)
+   - How fast neurons integrate input
+   - Balance between fast reactions and filtering
+
+3. **Motor Encoding** (DN→velocity mapping)
+   - What DN spike patterns produce effective movement
+   - Emergent motor strategies
+
+**All optimized via gradient descent to minimize task loss:**
+- Distance to goal
+- Energy expenditure
+- Sparse representation maintenance
 
 ## Project Structure
-│   ├── olfactory_circuit.py        # Red neuronal olfativa
-│   ├── sensory_transduction.py     # Conversión señal -> entrada neuronal
-│   └── descending_interface.py     # Decodificación comandos motores
-│
-├── body/                   # Módulo del cuerpo
-│   └── fly_interface.py    # Interfaz con NeuroMechFly + controlador de caminata
-│
-├── data/                   # Salida de simulaciones (HDF5, plots)
-├── analysis/               # Scripts de análisis
-│   └── visualization.py    # Funciones para graficar resultados
-│
-├── run_experiment.py       # Punto de entrada
-└── requirements.txt        # Dependencias Python
-```
 
 ## Conceptos Clave
 
