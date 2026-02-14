@@ -1,0 +1,38 @@
+2026-02-14 22:48:05,878 - __main__ - INFO - ======================================================================
+2026-02-14 22:48:05,878 - __main__ - INFO - NeuroMechFly Embodied Simulation
+2026-02-14 22:48:05,878 - __main__ - INFO - ======================================================================
+2026-02-14 22:48:05,878 - __main__ - INFO - Loading configuration from config/environment.yaml
+2026-02-14 22:48:05,883 - __main__ - INFO - Configuration loaded: 12 sections
+2026-02-14 22:48:05,883 - __main__ - INFO - Initializing simulation components...
+2026-02-14 22:48:05,883 - core.environment - INFO - Arena initialized: 100.0x100.0x50.0 mm
+2026-02-14 22:48:05,896 - brain.olfactory_circuit - INFO - OlfactoryCircuit initialized
+2026-02-14 22:48:05,896 - body.fly_interface - INFO - WalkingController initialized
+2026-02-14 22:48:05,896 - body.fly_interface - INFO - FlyInterface initialized (mock mode)
+2026-02-14 22:48:05,896 - core.simulation - INFO - NeuroMechFly Simulation initialized
+2026-02-14 22:48:05,896 - __main__ - INFO - All components initialized successfully
+2026-02-14 22:48:05,896 - __main__ - INFO - Running simulation for 10.0s (10000 steps)...
+2026-02-14 22:48:05,896 - core.simulation - INFO - Starting simulation for 10000 steps
+2026-02-14 22:48:06,110 - core.simulation - INFO - Completed step 1000/10000 (t=1.00s)
+2026-02-14 22:48:06,324 - core.simulation - INFO - Completed step 2000/10000 (t=2.00s)
+2026-02-14 22:48:06,634 - core.simulation - INFO - Completed step 3000/10000 (t=3.00s)
+2026-02-14 22:48:06,855 - core.simulation - INFO - Completed step 4000/10000 (t=4.00s)
+2026-02-14 22:48:07,069 - core.simulation - INFO - Completed step 5000/10000 (t=5.00s)
+2026-02-14 22:48:07,276 - core.simulation - INFO - Completed step 6000/10000 (t=6.00s)
+2026-02-14 22:48:07,482 - core.simulation - INFO - Completed step 7000/10000 (t=7.00s)
+2026-02-14 22:48:07,693 - core.simulation - INFO - Completed step 8000/10000 (t=8.00s)
+2026-02-14 22:48:07,904 - core.simulation - INFO - Completed step 9000/10000 (t=9.00s)
+2026-02-14 22:48:08,117 - core.simulation - INFO - Completed step 10000/10000 (t=10.00s)
+2026-02-14 22:48:08,117 - core.simulation - INFO - Simulation complete
+2026-02-14 22:48:08,117 - __main__ - INFO - Saving results...
+2026-02-14 22:48:16,512 - core.simulation - WARNING - Could not save motor_commands: Object dtype dtype('O') has no native HDF5 equivalent
+2026-02-14 22:48:16,513 - core.simulation - WARNING - Could not save neural_spikes: Object dtype dtype('O') has no native HDF5 equivalent
+2026-02-14 22:48:16,514 - core.simulation - INFO - Simulation data saved to data\20260214_224808\simulation_data.h5
+2026-02-14 22:48:16,514 - __main__ - INFO - Generating visualizations...
+2026-02-14 22:48:16,786 - analysis.visualization - INFO - Trajectory plot saved to data\20260214_224808\trajectory.png
+2026-02-14 22:48:16,919 - analysis.visualization - INFO - Neural activity plot saved to data\20260214_224808\neural_activity.png
+2026-02-14 22:48:17,076 - analysis.visualization - INFO - Odor response plot saved to data\20260214_224808\odor_response.png
+2026-02-14 22:48:17,076 - __main__ - INFO - ======================================================================
+2026-02-14 22:48:17,076 - __main__ - INFO - SIMULATION SUMMARY
+2026-02-14 22:48:17,076 - __main__ - INFO - ======================================================================
+2026-02-14 22:48:17,081 - __main__ - INFO - Total distance traveled: 14.0 mm
+2026-02-14 22:48:17,081 - __main__ - INFO - Final position: (50.0, 50.0)

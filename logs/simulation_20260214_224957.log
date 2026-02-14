@@ -1,0 +1,98 @@
+2026-02-14 22:49:57,959 - __main__ - INFO - ======================================================================
+2026-02-14 22:49:57,959 - __main__ - INFO - NeuroMechFly Embodied Simulation
+2026-02-14 22:49:57,959 - __main__ - INFO - ======================================================================
+2026-02-14 22:49:57,959 - __main__ - INFO - Loading configuration from config/environment.yaml
+2026-02-14 22:49:57,964 - __main__ - INFO - Configuration loaded: 12 sections
+2026-02-14 22:49:57,964 - __main__ - INFO - Initializing simulation components...
+2026-02-14 22:49:57,965 - core.environment - INFO - Arena initialized: 100.0x100.0x50.0 mm
+2026-02-14 22:49:57,977 - brain.olfactory_circuit - INFO - OlfactoryCircuit initialized
+2026-02-14 22:49:57,978 - body.fly_interface - INFO - WalkingController initialized
+2026-02-14 22:49:57,978 - body.fly_interface - INFO - FlyInterface initialized (mock mode)
+2026-02-14 22:49:57,978 - core.simulation - INFO - NeuroMechFly Simulation initialized
+2026-02-14 22:49:57,978 - __main__ - INFO - All components initialized successfully
+2026-02-14 22:49:57,978 - __main__ - INFO - Running simulation for 60.0s (60000 steps)...
+2026-02-14 22:49:57,978 - core.simulation - INFO - Starting simulation for 60000 steps
+2026-02-14 22:49:58,233 - core.simulation - INFO - Completed step 1000/60000 (t=1.00s)
+2026-02-14 22:49:58,479 - core.simulation - INFO - Completed step 2000/60000 (t=2.00s)
+2026-02-14 22:49:58,819 - core.simulation - INFO - Completed step 3000/60000 (t=3.00s)
+2026-02-14 22:49:59,068 - core.simulation - INFO - Completed step 4000/60000 (t=4.00s)
+2026-02-14 22:49:59,330 - core.simulation - INFO - Completed step 5000/60000 (t=5.00s)
+2026-02-14 22:49:59,574 - core.simulation - INFO - Completed step 6000/60000 (t=6.00s)
+2026-02-14 22:49:59,805 - core.simulation - INFO - Completed step 7000/60000 (t=7.00s)
+2026-02-14 22:50:00,023 - core.simulation - INFO - Completed step 8000/60000 (t=8.00s)
+2026-02-14 22:50:00,245 - core.simulation - INFO - Completed step 9000/60000 (t=9.00s)
+2026-02-14 22:50:00,463 - core.simulation - INFO - Completed step 10000/60000 (t=10.00s)
+2026-02-14 22:50:00,681 - core.simulation - INFO - Completed step 11000/60000 (t=11.00s)
+2026-02-14 22:50:00,902 - core.simulation - INFO - Completed step 12000/60000 (t=12.00s)
+2026-02-14 22:50:01,120 - core.simulation - INFO - Completed step 13000/60000 (t=13.00s)
+2026-02-14 22:50:01,341 - core.simulation - INFO - Completed step 14000/60000 (t=14.00s)
+2026-02-14 22:50:01,561 - core.simulation - INFO - Completed step 15000/60000 (t=15.00s)
+2026-02-14 22:50:01,782 - core.simulation - INFO - Completed step 16000/60000 (t=16.00s)
+2026-02-14 22:50:02,002 - core.simulation - INFO - Completed step 17000/60000 (t=17.00s)
+2026-02-14 22:50:02,231 - core.simulation - INFO - Completed step 18000/60000 (t=18.00s)
+2026-02-14 22:50:02,449 - core.simulation - INFO - Completed step 19000/60000 (t=19.00s)
+2026-02-14 22:50:02,669 - core.simulation - INFO - Completed step 20000/60000 (t=20.00s)
+2026-02-14 22:50:02,887 - core.simulation - INFO - Completed step 21000/60000 (t=21.00s)
+2026-02-14 22:50:03,109 - core.simulation - INFO - Completed step 22000/60000 (t=22.00s)
+2026-02-14 22:50:03,329 - core.simulation - INFO - Completed step 23000/60000 (t=23.00s)
+2026-02-14 22:50:03,548 - core.simulation - INFO - Completed step 24000/60000 (t=24.00s)
+2026-02-14 22:50:03,765 - core.simulation - INFO - Completed step 25000/60000 (t=25.00s)
+2026-02-14 22:50:03,983 - core.simulation - INFO - Completed step 26000/60000 (t=26.00s)
+2026-02-14 22:50:04,201 - core.simulation - INFO - Completed step 27000/60000 (t=27.00s)
+2026-02-14 22:50:04,420 - core.simulation - INFO - Completed step 28000/60000 (t=28.00s)
+2026-02-14 22:50:04,638 - core.simulation - INFO - Completed step 29000/60000 (t=29.00s)
+2026-02-14 22:50:04,857 - core.simulation - INFO - Completed step 30000/60000 (t=30.00s)
+2026-02-14 22:50:05,077 - core.simulation - INFO - Completed step 31000/60000 (t=31.00s)
+2026-02-14 22:50:05,296 - core.simulation - INFO - Completed step 32000/60000 (t=32.00s)
+2026-02-14 22:50:05,511 - core.simulation - INFO - Completed step 33000/60000 (t=33.00s)
+2026-02-14 22:50:05,729 - core.simulation - INFO - Completed step 34000/60000 (t=34.00s)
+2026-02-14 22:50:05,947 - core.simulation - INFO - Completed step 35000/60000 (t=35.00s)
+2026-02-14 22:50:06,165 - core.simulation - INFO - Completed step 36000/60000 (t=36.00s)
+2026-02-14 22:50:06,381 - core.simulation - INFO - Completed step 37000/60000 (t=37.00s)
+2026-02-14 22:50:06,596 - core.simulation - INFO - Completed step 38000/60000 (t=38.00s)
+2026-02-14 22:50:06,816 - core.simulation - INFO - Completed step 39000/60000 (t=39.00s)
+2026-02-14 22:50:07,034 - core.simulation - INFO - Completed step 40000/60000 (t=40.00s)
+2026-02-14 22:50:07,252 - core.simulation - INFO - Completed step 41000/60000 (t=41.00s)
+2026-02-14 22:50:07,469 - core.simulation - INFO - Completed step 42000/60000 (t=42.00s)
+2026-02-14 22:50:07,685 - core.simulation - INFO - Completed step 43000/60000 (t=43.00s)
+2026-02-14 22:50:07,902 - core.simulation - INFO - Completed step 44000/60000 (t=44.00s)
+2026-02-14 22:50:08,120 - core.simulation - INFO - Completed step 45000/60000 (t=45.00s)
+2026-02-14 22:50:08,382 - core.simulation - INFO - Completed step 46000/60000 (t=46.00s)
+2026-02-14 22:50:08,649 - core.simulation - INFO - Completed step 47000/60000 (t=47.00s)
+2026-02-14 22:50:08,888 - core.simulation - INFO - Completed step 48000/60000 (t=48.00s)
+2026-02-14 22:50:09,137 - core.simulation - INFO - Completed step 49000/60000 (t=49.00s)
+2026-02-14 22:50:09,384 - core.simulation - INFO - Completed step 50000/60000 (t=50.00s)
+2026-02-14 22:50:09,632 - core.simulation - INFO - Completed step 51000/60000 (t=51.00s)
+2026-02-14 22:50:09,873 - core.simulation - INFO - Completed step 52000/60000 (t=52.00s)
+2026-02-14 22:50:10,109 - core.simulation - INFO - Completed step 53000/60000 (t=53.00s)
+2026-02-14 22:50:10,346 - core.simulation - INFO - Completed step 54000/60000 (t=54.00s)
+2026-02-14 22:50:10,581 - core.simulation - INFO - Completed step 55000/60000 (t=55.00s)
+2026-02-14 22:50:10,798 - core.simulation - INFO - Completed step 56000/60000 (t=56.00s)
+2026-02-14 22:50:11,015 - core.simulation - INFO - Completed step 57000/60000 (t=57.00s)
+2026-02-14 22:50:11,257 - core.simulation - INFO - Completed step 58000/60000 (t=58.00s)
+2026-02-14 22:50:11,505 - core.simulation - INFO - Completed step 59000/60000 (t=59.00s)
+2026-02-14 22:50:11,755 - core.simulation - INFO - Completed step 60000/60000 (t=60.00s)
+2026-02-14 22:50:11,755 - core.simulation - INFO - Simulation complete
+2026-02-14 22:50:11,755 - __main__ - INFO - Saving results...
+2026-02-14 22:50:13,143 - core.simulation - INFO - Simulation data saved to data\20260214_225011\simulation_data.h5
+2026-02-14 22:50:13,145 - __main__ - INFO - Generating visualizations...
+2026-02-14 22:50:13,555 - analysis.visualization - INFO - Trajectory plot saved to data\20260214_225011\trajectory.png
+2026-02-14 22:50:13,720 - analysis.visualization - INFO - Neural activity plot saved to data\20260214_225011\neural_activity.png
+2026-02-14 22:50:13,924 - analysis.visualization - INFO - Odor response plot saved to data\20260214_225011\odor_response.png
+2026-02-14 22:50:15,954 - analysis.visualization_3d - INFO - 3D trajectory plot saved to data\20260214_225011\3d_trajectory.png
+2026-02-14 22:50:17,354 - analysis.visualization_3d - INFO - Neural heatmap saved to data\20260214_225011\neural_heatmap.png
+2026-02-14 22:50:18,164 - analysis.visualization_3d - INFO - Behavior analysis plot saved to data\20260214_225011\behavior_analysis.png
+2026-02-14 22:50:18,164 - __main__ - INFO - ======================================================================
+2026-02-14 22:50:18,164 - __main__ - INFO - SIMULATION SUMMARY
+2026-02-14 22:50:18,164 - __main__ - INFO - ======================================================================
+2026-02-14 22:50:18,190 - __main__ - INFO - Total distance traveled: 84.0 mm
+2026-02-14 22:50:18,190 - __main__ - INFO - Final position: (50.0, 50.0)
+2026-02-14 22:50:18,190 - __main__ - INFO - Final distance to food: 0.0 mm
+2026-02-14 22:50:18,190 - __main__ - INFO - Results saved to: data\20260214_225011
+2026-02-14 22:50:18,190 - __main__ - INFO - 
+2026-02-14 22:50:18,190 - __main__ - INFO - Visualización disponible:
+2026-02-14 22:50:18,190 - __main__ - INFO -   - Trayectoria: data\20260214_225011\trajectory.png
+2026-02-14 22:50:18,190 - __main__ - INFO -   - Actividad neural: data\20260214_225011\neural_activity.png
+2026-02-14 22:50:18,190 - __main__ - INFO -   - Respuesta olfativa: data\20260214_225011\odor_response.png
+2026-02-14 22:50:18,190 - __main__ - INFO -   - Datos crudos: data\20260214_225011\simulation_data.h5
+2026-02-14 22:50:18,190 - __main__ - INFO - ======================================================================

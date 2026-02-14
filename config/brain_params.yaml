@@ -1,0 +1,31 @@
+# Brain Model Parameters (Olfactory Circuit)
+
+neurons:
+  orn_count: 50          # Olfactory Receptor Neurons
+  pn_count: 20           # Projection Neurons  
+  kc_count: 2000         # Kenyon Cells (Mushroom Body)
+  mbon_count: 34         # Mushroom Body Output Neurons
+  dn_count: 10           # Descending Neurons (motor command layer)
+
+synapses:
+  orn_to_pn_weight: 0.5
+  pn_to_kc_weight: 0.1
+  kc_to_mbon_weight: 0.2
+  mbon_to_dn_weight: 0.3
+  
+  lateral_inhibition_strength: 0.05
+  spontaneous_activity: 0.01
+
+learning:
+  learning_rule: "hebbian"  # "hebbian", "stdp", or "none"
+  learning_rate: 0.01
+  eligibility_trace_tau: 0.1  # Time constant (s)
+
+temporal:
+  membrane_time_constant: 0.01  # s
+  spike_threshold: -50.0      # mV
+  resting_potential: -70.0    # mV
+  
+integration:
+  method: "exponential"  # "exponential", "analytic", or "numeric"
+  dt: 0.0001             # Integration timestep (s)
