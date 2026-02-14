@@ -1,23 +1,78 @@
-# NeuroMechFly Simulation Project README
+# NeuroMechFly 3D Embodied Simulation
 
-## Descripción General
+Complete neural-driven fly simulation with realistic physics kinematics. Integrates biophysical olfactory circuit neural model, 3D skeletal body model with realistic leg kinematics, and embodied cognition in a virtual arena.
 
-Este proyecto implementa una simulación **embodied** de la mosca (Drosophila) usando **NeuroMechFly**. El objetivo es integrar un modelo neuronal olfativo con un cuerpo físico simulado en MuJoCo, permitiendo que el "cerebro virtual" controle el movimiento del cuerpo en un entorno con gradientes de olor.
+## Overview
 
-## Estructura del Proyecto
+This project demonstrates integrating three core components into a unified embodied simulation:
 
 ```
-proyecto_mosca/
-├── config/                 # Configuraciones YAML
-│   ├── environment.yaml    # Parámetros de la arena y olor
-│   ├── fly_params.yaml     # Parámetros físicos de la mosca
-│   └── brain_params.yaml   # Parámetros del modelo neuronal
-│
-├── core/                   # Módulo central
-│   ├── simulation.py       # Bucle principal de simulación
-│   └── environment.py      # Definición de la arena y física
-│
-├── brain/                  # Módulo neural
+SENSORY INPUT (Odor Gradient)
+          ↓
+     [NEURAL BRAIN]  ← Biophysical LIF neurons
+     ORN→KC→DN       ← Spiking network
+          ↓
+    [MOTOR CONTROL]  ← CPG-driven walking
+          ↓
+    [FLY BODY]       ← 3D skeleton kinematics
+          ↓
+    [PHYSICS]        ← Arena updates
+          ↓
+    New sensory state (closed-loop)
+```
+
+## Features
+
+### Neural Substrate
+- **50 Olfactory Receptor Neurons (ORN)**: Gaussian tuning curves sensing odor gradient
+- **2000 Kenyon Cells (KC)**: Sparse coding with random connectivity  
+- **34 Mushroom Body Output Neurons (MBON)**: Linear summation of KC activity
+- **10 Descending Neurons (DN)**: Motor command output
+- **Biophysic LIF Model**: Leaky integrate-and-fire with realistic reset dynamics
+
+### Body Model
+- **3D Skeleton**: Head, thorax, abdomen
+- **6 Legs**: 3 segments each with forward kinematics
+- **2 Wings**: Visualization only
+- **Tripod Gait CPG**: Central Pattern Generator at 10 Hz
+- **Ground Contact Physics**: Foot contact detection and friction
+
+### Environment
+- **100×100×50 mm Arena**: Bounded 3D space
+- **Gaussian Odor Gradient**: Centered at [50, 50, 0] mm
+- **Diffusion Simulation**: Exponential falloff with distance
+
+## Installation
+
+```bash
+# Create virtual environment  
+python -m venv .venv
+.\.venv\Scripts\activate  # Windows
+source .venv/bin/activate  # Linux/Mac
+
+# Install dependencies
+pip install numpy scipy h5py pyyaml matplotlib vispy PyQt6
+```
+
+## Quick Start
+
+### Demo (10 seconds, ~4 seconds runtime)
+```bash
+python demo_embodied.py --duration 10
+```
+
+Shows real-time statistics:
+- Position tracking
+- Neural spike activity  
+- Behavioral metrics
+- Sensory input (odor)
+
+### Full Simulation (30 seconds with visualization)
+```bash
+python run_3d_simulation.py --duration 30
+```
+
+## Project Structure
 │   ├── olfactory_circuit.py        # Red neuronal olfativa
 │   ├── sensory_transduction.py     # Conversión señal -> entrada neuronal
 │   └── descending_interface.py     # Decodificación comandos motores

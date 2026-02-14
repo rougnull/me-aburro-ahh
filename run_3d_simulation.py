@@ -155,7 +155,6 @@ class EmbodiedSimulation:
         positions = []
         odors = []
         velocities = []
-        dn_outputs = []
         
         try:
             for step in range(n_steps):
@@ -164,7 +163,6 @@ class EmbodiedSimulation:
                 positions.append(state['position'])
                 odors.append(state['odor'][0] if len(state['odor']) > 0 else 0)
                 velocities.append(np.linalg.norm(state['motor_command'][:2]))
-                dn_outputs.append(state['dn_output'])
                 
                 # Progress
                 if step % 5000 == 0 and step > 0:
@@ -196,7 +194,6 @@ class EmbodiedSimulation:
             'positions': np.array(positions),
             'odors': np.array(odors),
             'velocities': np.array(velocities),
-            'dn_outputs': np.array(dn_outputs),
             'n_steps': n_steps,
             'duration': duration,
         }
