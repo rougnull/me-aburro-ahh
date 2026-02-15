@@ -82,6 +82,21 @@ class FlyBody:
         
         logger.info("FlyBody initialized with realistic skeleton")
     
+    def reset(self):
+        """Reset body to initial state."""
+        self.com_pos = np.array([0.0, 0.0, 0.0])
+        self.com_vel = np.array([0.0, 0.0, 0.0])
+        self.heading = np.array([1.0, 0.0, 0.0])
+        self.pitch = 0.0
+        self.roll = 0.0
+        self.ang_vel = np.array([0.0, 0.0, 0.0])
+        self.leg_angles = np.zeros((6, 3))
+        self.wing_angle_left = 0.0
+        self.wing_angle_right = 0.0
+        self.forward_cmd = 0.0
+        self.turn_cmd = 0.0
+        logger.info("FlyBody reset to initial state")
+    
     def _initialize_legs(self) -> np.ndarray:
         """Initialize leg positions in 3D space."""
         # Leg attachment points on thorax (in body frame)
@@ -284,6 +299,14 @@ class RealisticFlyInterface:
         self.velocity = self.body.com_vel.copy()
         
         logger.info("RealisticFlyInterface initialized with skeleton-based model")
+    
+    def reset_to_initial_state(self):
+        """Reset fly to initial position and state."""
+        self.body.reset()
+        self.position = self.body.com_pos.copy()
+        self.orientation = self.body.heading.copy()
+        self.velocity = self.body.com_vel.copy()
+        logger.info("RealisticFlyInterface reset to initial state")
     
     def get_body_position(self) -> np.ndarray:
         """Get current 3D position of fly COM."""

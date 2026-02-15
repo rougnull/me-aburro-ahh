@@ -53,6 +53,38 @@ class NeuroMechFlySimulation:
         
         logger.info("NeuroMechFly Simulation initialized")
     
+    def reset(self):
+        """
+        Reset the simulation for a new episode.
+        - Reset fly position and orientation
+        - Reset neural state
+        - Clear logged data
+        """
+        # Reset physics
+        self.fly.reset_to_initial_state()
+        
+        # Reset neural state
+        if hasattr(self.brain, 'reset'):
+            self.brain.reset()
+        
+        # Reset time and counters
+        self.current_time = 0.0
+        self.step_count = 0
+        
+        # Clear data log
+        self.logged_data = {
+            'time': [],
+            'position': [],
+            'orientation': [],
+            'velocity': [],
+            'odor_input': [],
+            'brain_output': [],
+            'motor_commands': [],
+            'neural_spikes': []
+        }
+        
+        logger.info("Simulation reset")
+    
     def step(self) -> Dict:
         """
         Execute one simulation step:

@@ -22,7 +22,7 @@ from core.environment import Arena
 from core.simulation import NeuroMechFlySimulation
 from brain.olfactory_circuit import OlfactoryCircuit
 from body.realistic_body import RealisticFlyInterface
-from config.config_loader import load_config
+from config.config_loader import load_default_config
 
 # Import DMN components
 from connectome.fetch_data import FlyWireConnectome
@@ -50,8 +50,21 @@ def setup_embodied_dmn(config: dict) -> tuple:
     
     # Setup NeuroMechFly environment
     logger.info("Initializing NeuroMechFly embodied simulation...")
-    arena = Arena()
-    nmf_config = load_config('config/default_config.yaml')
+    nmf_config = load_default_config()  # Load merged config from YAML files
+    
+    # Initialize arena with config
+    env_params = nmf_config.get('arena', {})
+    odor_params = nmf_config.get('odor', {})
+    arena = Arena(
+        width=env_params.get('width', 100.0),
+        height=env_params.get('height', 100.0),
+        depth=env_params.get('depth', 50.0),
+        food_position=odor_params.get('food_position', [50, 50, 0]),
+        food_intensity=odor_params.get('food_intensity', 1.0),
+        diffusion_coeff=odor_params.get('diffusion_coefficient', 0.1),
+        decay_rate=odor_params.get('decay_rate', 0.05)
+    )
+    
     interface = RealisticFlyInterface()
     brain = OlfactoryCircuit(nmf_config)
     
@@ -68,18 +81,40 @@ def setup_embodied_dmn(config: dict) -> tuple:
     logger.info(f"Connectome: {len(connectome['neurons'])} neurons, "
                f"{connectome['total_synapses']} synapses")
     
-    # Create weight matrices
+    # Create weight matrices with correct layer sizes
     logger.info("Generating weight matrices...")
-    generator = AdjacencyMatrixGenerator()
+    
+    # Define layer sizes for olfactory circuit
+    layer_sizes = {
+        'orn': 50,
+        'pn': 50,
+        'kc': 2000,
+        'mbon': 50,
+        'dn': 10
+    }
+    
+    layer_pairs = [('orn', 'pn'), ('pn', 'kc'), ('kc', 'mbon'), ('mbon', 'dn')]
     
     matrices = {}
     masks = {}
     
-    # For each layer pair, use copies of the same matrix (simplified for now)
-    for layer_pair in [('orn', 'pn'), ('pn', 'kc'), ('kc', 'mbon'), ('mbon', 'dn')]:
-        w, m = generator.create_weight_matrix(connectome, normalize=True, learnable=True)
-        matrices[layer_pair] = (w, m)
-        masks[f'mask_{layer_pair[0]}_{layer_pair[1]}'] = m
+    # For each layer pair, create appropriately sized weight matrix
+    # Weights are stored as (pre_size, post_size) for proper matrix multiply
+    for pre_layer, post_layer in layer_pairs:
+        pre_size = layer_sizes[pre_layer]
+        post_size = layer_sizes[post_layer]
+        
+        # Create random weight matrix (will be learned)
+        # Shape: (pre_size, post_size) so that .T @ pre_neurons gives post neurons
+        w = torch.randn(pre_size, post_size) * 0.1
+        w = w.to(device)
+        
+        # Create all-ones mask (full connectivity for learning)
+        m = torch.ones(pre_size, post_size)
+        m = m.to(device)
+        
+        matrices[(pre_layer, post_layer)] = (w, m)
+        masks[f'mask_{pre_layer}_{post_layer}'] = m
     
     # Create DMN circuit  
     logger.info("Building differentiable neural circuit...")

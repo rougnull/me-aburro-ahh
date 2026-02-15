@@ -138,16 +138,273 @@ The training process learns:
 
 ## Project Structure
 
-## Conceptos Clave
+```
+NeuroMechFly Sim/
+├── connectome/                 # FlyWire integration
+│   ├── fetch_data.py          # Load connectome data
+│   ├── adjacency_matrix.py    # Create learnable weights
+│   └── cell_types.yaml        # Neuron reference
+│
+├── simulation/
+│   ├── mechanism.py           # Differentiable LIF neurons (PyTorch)
+│   ├── __init__.py
+│   └── ... (existing files)
+│
+├── training/                  # Learning & optimization
+│   ├── loss_functions.py      # Task objectives
+│   ├── optimizer.py           # BPTT training loop
+│   └── __init__.py
+│
+├── core/                      # NeuroMechFly physics
+│   ├── simulation.py          # Main loop
+│   ├── environment.py         # Arena & odor
+│   └── ... (existing files)
+│
+├── brain/                     # Neural circuits
+│   └── olfactory_circuit.py   # Biophysical LIF model
+│
+├── body/                      # Embodied control
+│   └── realistic_body.py      # 3D skeleton kinematics
+│
+├── train_embodied_dmn.py      # Main training script ← START HERE
+├── dmn_embodied_integration.py # DMN ↔ Physics adapter
+├── dmn_verify_setup.py        # Dependency checker
+└── README.md                  # This file
+```
 
-### 1. **Capas del Control Motor**
+## How DMN Works
 
-- **Cerebro Olfativo (Brain Layer)**: Integra inputs olfatorios y genera comandos de alto nivel (avanzar, girar)
-- **Interface de Neuronas Descendentes (DN Interface)**: Decodifica la actividad neuronal en comandos motores
-- **Controlador de Caminata (CPG - Central Pattern Generator)**: Genera ritmos de las patas modulados por los comandos DN
-- **Física (MuJoCo via NeuroMechFly)**: Simula el movimiento real con inercia, fricción y colisiones
+### The Learning Loop
 
-### 2. **Circuito Olfatorio Simulado**
+```
+1. ROLLOUT (Closed-loop simulation)
+   ├─ Get odor observation from arena
+   ├─ Forward pass through neural circuit
+   ├─ Convert DN spikes to motor commands
+   ├─ Update physics (NeuroMechFly)
+   └─ Record: positions, velocities, neural activity
+   
+2. COMPUTE LOSS
+   ├─ Distance from fly to goal
+   ├─ Energy cost of movement
+   ├─ KC sparsity penalty
+   └─ Activity regularization
+   
+3. BACKPROPAGATION (BPTT)
+   ├─ Gradients flow backward through 5000 timesteps
+   ├─ Compute ∂loss/∂w for all learnable weights
+   ├─ Update synaptic weights via gradient descent
+   └─ Update neuron time constants
+   
+4. REPEAT for next episode
+```
+
+### Key Technical Points
+
+**Surrogate Gradients**: Spikes are discrete (0/1) but we need differentiable gradients.
+- Forward: Step function (actual spike yes/no)
+- Backward: Smooth sigmoid (allows gradient flow)
+
+**Connectivity Masks**: Preserve connectome structure while learning weights.
+- Which synapses can exist: FIXED from FlyWire
+- Synaptic strength: LEARNED via BPTT
+
+**Multi-Task Optimization**: Trade-offs between objectives.
+```python
+Loss = 1.0 × distance_to_goal    # Primary task
+     + 0.1 × movement_cost        # Energy efficiency  
+     + 0.01 × sparsity_violation  # Maintain sparse KC
+     + 0.001 × firing_rate_excess # Prevent pathology
+```
+
+## Interpreting Results
+
+After training, you'll see in `embodied_training_results/training_results.json`:
+
+```json
+{
+  "training_losses": [
+    {
+      "total": 12.3456,      // ← Should decrease over episodes
+      "nav_distance": 10.234, // Decreased = learning to navigate
+      "energy": 0.0145,       // Energy cost (lower = efficient)
+      ...
+    },
+    ...
+  ],
+  "final_metrics": {
+    "final_distance_to_goal": 2.34,    // ← How close did it get?
+    "mean_distance_to_goal": 15.42,    // Average distance
+    "total_distance_traveled": 45.23   // How much did it explore?
+  }
+}
+```
+
+**Good training**: 
+- Loss decreases smoothly
+- Final distance < 5mm (from 50mm goal)
+- Mean distance drops significantly
+
+## Research Applications
+
+### 1. Reverse Engineering
+Learn what circuit mechanisms are **necessary** for observed behaviors.
+
+### 2. Developmental Studies  
+How do circuits learn navigation skills?
+
+### 3. Counterfactual Analysis
+What if connectome was modified? Does learning compensate?
+
+### 4. Neuromorphic Hardware
+Export learned weights to Intel Loihi, BrainScaleS
+
+## Technical Details
+
+### Neural Circuit Architecture
+
+```
+Sensory Input (Odor)
+    ↓ (50 × 50 weight matrix)
+ORN Layer (50 neurons) - τ=15ms, θ=-50mV
+    ↓ (50 × 50 weight matrix)
+PN Layer (50 neurons) - τ=15ms, θ=-50mV [Learnable τ]
+    ↓ (50 × 2000 sparse mask, 2% connectivity)
+KC Layer (2000 neurons) - τ=20ms, θ=-50mV [Learnable τ]
+    ↓ (2000 × 50 convergent)
+MBON Layer (50 neurons) - τ=25ms, θ=-50mV [Learnable τ, weights]
+    ↓ (50 × 10 dense)
+DN Layer (10 neurons) - τ=30ms, θ=-50mV [Learnable τ, weights]
+    ↓ (10-dim spike output)
+Motor Commands (velocity, turning, ...)
+```
+
+### LIF Neuron Dynamics
+
+Each neuron computed as:
+```
+V[t+1] = α·V[t] + (1-α)·I_syn[t]
+
+where:
+  α = exp(-Δt/τ)          Decay factor
+  V = Membrane potential (mV)
+  τ = Time constant (ms)    ← Learnable
+  I_syn = Weighted spike input
+  
+Spike generated if V > θ (threshold, learnable)
+After spike: V ← V_reset = -70mV
+```
+
+### Backprop Through Time (BPTT)
+
+For a 5000-step episode:
+```python
+# Forward pass (accumulate loss)
+total_loss = 0
+for step in range(5000):
+    observations = env.get_odor()
+    neural_output = circuit(observations)
+    motor_cmd = decode_motor(neural_output)
+    env.step(motor_cmd)
+    loss_step = loss_fn(trajectory_so_far)
+    total_loss += loss_step
+
+# Backward pass (compute gradients)
+total_loss.backward()  # PyTorch autograd computes ∂loss/∂w for ALL 5000 steps
+
+# Update ALL parameters
+optimizer.step()
+```
+
+**Key**: Gradients flow backward through entire episode, not just per-timestep.
+
+## Dependencies
+
+| Package | Purpose | Version |
+|---------|---------|---------|
+| `torch` | Auto-differentiation, GPU support | ≥2.0.0 |
+| `numpy` | Numerical computation | ≥1.22 |
+| `scipy` | Scientific math (sparse matrices) | ≥1.10 |
+| `scikit-learn` | ML utilities, UMAP | ≥1.2 |
+| `networkx` | Graph analysis | ≥3.0 |
+| `h5py` | Data storage (HDF5) | ≥3.8 |
+| `pyyaml` | Config parsing | ≥6.0 |
+| `matplotlib` | Visualization | ≥3.5 |
+
+## Troubleshooting
+
+### "CUDA out of memory"
+```bash
+# Use CPU instead
+python train_embodied_dmn.py --num-episodes 10
+```
+
+### "Module not found: connectome"
+```bash
+# Make sure you're in the project root
+cd "NeuroMechFly Sim"
+python train_embodied_dmn.py
+```
+
+### "Loss doesn't decrease"
+```bash
+# Try higher learning rate
+python train_embodied_dmn.py --learning-rate 0.01
+
+# Or train longer
+python train_embodied_dmn.py --num-episodes 100
+```
+
+### "Import error for NeuroMechFly components"
+```bash
+# Verify all submodules exist
+python dmn_verify_setup.py
+```
+
+## References
+
+**Differentiable Spiking Networks**:
+- Zenke & Ganguli (2018) "SuperSpike: Supervised learning in multilayer spiking neural networks"
+- Bellec et al. (2020) "A Solution to the Learning Problem with Spiking Neurons"
+
+**Connectomics**:
+- Bates et al. (2020) "The connectome of the Drosophila central brain at synaptic resolution"
+- Zheng et al. (2020) "A Complete Electron Microscopy Volume of the Brain of a Larval Zebrafish"
+
+**Embodied AI**:
+- Marblestone et al. (2016) "Toward an Integration of Deep Learning and Neuroscience"
+- Caruana et al. (2021) "Meta-Learning in Neural Networks: A Survey"
+
+## Citation
+
+If you use this framework in your research, please cite:
+
+```bibtex
+@software{neuromechfly_dmn,
+  title={NeuroMechFly: Differentiable Embodied Neuroscience Framework},
+  author={Your Name},
+  year={2024},
+  note={Combines spiking neural networks with embodied physics simulation}
+}
+```
+
+## License
+
+MIT License - See LICENSE file for details
+
+## Authors
+
+Developed as a research framework for embodied neuroscience and neuromorphic computing.
+
+---
+
+**Ready to train?**
+
+```bash
+python train_embodied_dmn.py --num-episodes 20
+```
+
+Start here. See what your network learns. 🧠🤖
 
 ```
 Odor (Arena) → ORNs (sensores) 

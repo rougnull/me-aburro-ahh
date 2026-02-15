@@ -69,13 +69,17 @@ class DMNtoEnvironment:
         return motor_cmd
     
     def get_odor_observation(self) -> torch.Tensor:
-        """Get current odor observation as tensor."""
-        odor = self.env.get_odor_at(self.env.fly_position)
-        return torch.tensor(odor, dtype=torch.float32)
+        """Get current odor observation as tensor and expand to ORN population."""
+        pos = self.env.fly.get_body_position()
+        odor_scalar = self.env.env.get_odor_concentration(pos)
+        
+        # Expand scalar odor to 50-dim ORN input (all ORNs see same odor)
+        odor_50d = torch.full((50,), float(odor_scalar), dtype=torch.float32)
+        return odor_50d
     
     def get_position(self) -> torch.Tensor:
         """Get current fly position as tensor."""
-        pos = np.array(self.env.fly_position)
+        pos = self.env.fly.get_body_position()
         return torch.tensor(pos, dtype=torch.float32)
 
 
@@ -146,14 +150,25 @@ class EmbodiedDMNSimulator:
         """
         # Get observation
         pos_before = self.adapter.get_position().cpu().numpy().copy()
-        odor = self.adapter.get_odor_observation()
+        odor = self.adapter.get_odor_observation()  # Returns 50-dim tensor
+        
+        # Ensure odor is on the right device
+        odor = odor.to(self.device)
         
         # Neural forward pass
         dn_spikes, activations = self.circuit(odor, return_activations=True)
         
-        # Convert to motor command and step environment
+        # Convert to motor command
         motor_cmd = self.adapter.dn_output_to_motor_command(dn_spikes)
-        self.env.step(motor_cmd)
+        
+        # Apply motor commands directly to fly interface
+        self.env.fly.apply_motor_commands({
+            'forward_speed': float(motor_cmd[0]),
+            'angular_velocity': float(motor_cmd[1])
+        })
+        
+        # Step physics
+        self.env.fly.physics_step(self.env.timestep)
         
         # Get new position
         pos_after = self.adapter.get_position().cpu().numpy()
@@ -162,7 +177,9 @@ class EmbodiedDMNSimulator:
         # Record trajectory
         self.trajectory['positions'].append(pos_after.copy())
         self.trajectory['velocities'].append(velocity.copy())
-        self.trajectory['odor_observations'].append(odor.item())
+        # Store odor (take mean of 50-dim representation)
+        odor_scalar = odor.mean().item() if torch.is_tensor(odor) else float(odor)
+        self.trajectory['odor_observations'].append(odor_scalar)
         self.trajectory['dn_outputs'].append(dn_spikes.detach().cpu().numpy().copy())
         
         # Store first step activations structure
@@ -178,7 +195,7 @@ class EmbodiedDMNSimulator:
         return {
             'position': pos_after,
             'velocity': velocity,
-            'odor': odor.item(),
+            'odor': odor_scalar,  # Use scalar version
             'dn_spikes': dn_spikes.detach().cpu().numpy(),
         }
     
@@ -242,7 +259,7 @@ if __name__ == "__main__":
     from core.simulation import NeuroMechFlySimulation
     from brain.olfactory_circuit import OlfactoryCircuit
     from body.realistic_body import RealisticFlyInterface
-    from config.config_loader import load_config
+    from config.config_loader import load_default_config
     from simulation.mechanism import DifferentiableOlfactoryCircuit
     from connectome.fetch_data import FlyWireConnectome
     from connectome.adjacency_matrix import AdjacencyMatrixGenerator
@@ -254,8 +271,20 @@ if __name__ == "__main__":
     print("="*60)
     
     # Setup environment
-    arena = Arena()
-    config = load_config('config/default_config.yaml')
+    config = load_default_config()
+    
+    # Initialize arena
+    env_params = config.get('arena', {})
+    odor_params = config.get('odor', {})
+    arena = Arena(
+        width=env_params.get('width', 100.0),
+        height=env_params.get('height', 100.0),
+        depth=env_params.get('depth', 50.0),
+        food_position=odor_params.get('food_position', [50, 50, 0]),
+        food_intensity=odor_params.get('food_intensity', 1.0),
+        diffusion_coeff=odor_params.get('diffusion_coefficient', 0.1),
+        decay_rate=odor_params.get('decay_rate', 0.05)
+    )
     
     interface = RealisticFlyInterface()
     brain = OlfactoryCircuit(config)
