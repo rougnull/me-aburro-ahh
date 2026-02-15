@@ -105,7 +105,7 @@ def example_top_down_custom():
     # Personalizaciones
     config.environment.floor_enabled = True
     config.environment.floor_color = (0.9, 0.9, 0.95, 1.0)  # Gris claro
-    config.fps = 30
+    config.fps = 24
     config.width = 1440
     config.height = 1440  # Cuadrado para vista superior
     
@@ -121,9 +121,30 @@ def main():
     # Descomenta el que desees
     
     # Render básico por defecto
-    config = RenderConfig()
+    # config = RenderConfig()
+    
+    config = create_moldeable_render(
+        highlight_leg="RF",
+        highlight_segment="Femur",
+        custom_colors={
+            "RF": (1.0, 0.0, 0.0, 1.0),
+            "LF": (0.0, 0.0, 1.0, 1.0),
+        },
+        
+        camera_preset="rotating",
+        follow_fly=True,
+        
+        fps=60,
+        subsample=1,
+        
+        floor_enabled=True,
+        floor_size=(100, 100, 0.1),
+        floor_reflection=1.0 # 1.0 = espejo perfecto, 0.0 = mate
+        
+    )
+    
     renderer = MuJoCoRenderer(config)
-    renderer.render_and_save()
+    renderer.render_and_save("neuromechfly_con_suelo.mp4")
     
     # Descomentar para ejecutar otros ejemplos:
     # example_side_view()

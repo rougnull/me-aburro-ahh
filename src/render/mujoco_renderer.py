@@ -10,8 +10,14 @@ import mujoco
 import imageio
 from tqdm import tqdm
 
-# IMPORTS ABSOLUTOS (no relativos)
-from src.core.config import RenderConfig, CameraConfig, EnvironmentConfig, PartHighlightConfig
+# IMPORTANTE: Asegurar que los imports funcionan
+import sys
+# from src.core.config import RenderConfig, CameraConfig, EnvironmentConfig, PartHighlightConfig
+# from src.core.data import load_kinematic_data, format_joint_data, get_n_frames
+# from src.core.model import find_neuromechfly_model, load_and_setup_model, create_minimal_model
+
+# Asumiendo que el script se ejecuta desde la raíz o con PYTHONPATH correcto
+from src.core.config import RenderConfig
 from src.core.data import load_kinematic_data, format_joint_data, get_n_frames
 from src.core.model import find_neuromechfly_model, load_and_setup_model, create_minimal_model
 
@@ -53,13 +59,14 @@ class MuJoCoRenderer:
             
             if model_path is None:
                 print("  ⚠️  Modelo de NeuroMechFly no encontrado, creando modelo minimal...")
-                self.model, self.data = create_minimal_model(self.config.output_dir)
+                self.model, self.data = create_minimal_model(self.config.output_dir, self.config.environment)
             else:
                 print(f"  ✓ Modelo encontrado: {model_path.name}")
                 self.model, self.data = load_and_setup_model(
                     model_path,
                     self.config.width,
-                    self.config.height
+                    self.config.height,
+                    self.config.environment
                 )
             
             print(f"  ✓ Modelo cargado:")
@@ -123,10 +130,10 @@ class MuJoCoRenderer:
             return False
     
     def _apply_environment_config(self):
-        """Aplica configuración del ambiente (suelo, iluminación, etc.)"""
-        # Nota: La configuración del ambiente está en el XML del modelo
-        # Si se necesita cambiarla dinámicamente, se requeriría regenerar el XML
-        # O usar APIs de MuJoCo para modificar geometrías en tiempo de ejecución
+        """
+        Aplica configuración del ambiente (iluminación, etc.)
+        """
+        # Configuración del ambiente se aplica principalmente a través del XML
         pass
     
     def _setup_renderer(self):
@@ -143,13 +150,13 @@ class MuJoCoRenderer:
         
         # Mostrar puntos de contacto y fuerzas
         scene_option.flags[mujoco.mjtVisFlag.mjVIS_TRANSPARENT] = False
-        scene_option.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = True
-        scene_option.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = True
+        scene_option.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = False # Desactivado por limpieza visual
+        scene_option.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = False
         
         return scene_option
     
     def _setup_camera(self) -> mujoco.MjvCamera:
-        """Configura cámara según configuración"""
+        """Configura cámara según configuración inicial"""
         camera = mujoco.MjvCamera()
         cam_config = self.config.camera
         
@@ -157,13 +164,12 @@ class MuJoCoRenderer:
             camera.type = mujoco.mjtCamera.mjCAMERA_FREE
         elif cam_config.type == "tracking":
             camera.type = mujoco.mjtCamera.mjCAMERA_TRACKING
-            # Buscar índice del cuerpo a seguir
             try:
                 body_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, cam_config.lookat_body)
                 if body_id >= 0:
                     camera.trackbodyid = body_id
             except:
-                pass  # Si no encuentra el cuerpo, usar free camera
+                pass 
         else:  # fixed
             camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
         
@@ -200,6 +206,13 @@ class MuJoCoRenderer:
                 self.data.qpos[0:3] = [0.0, 0.0, 1.5]  # Posición inicial
                 self.data.qpos[3:7] = [1.0, 0.0, 0.0, 0.0]  # Orientación
             
+            # Identificar ID del cuerpo principal para seguimiento (Thorax)
+            thorax_id = -1
+            try:
+                thorax_id = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_BODY, "Thorax")
+            except:
+                pass
+
             # Renderizar frames
             with tqdm(enumerate(render_indices), total=len(render_indices), desc="  Progreso") as pbar:
                 for idx, frame_idx in pbar:
@@ -212,14 +225,21 @@ class MuJoCoRenderer:
                     # Avanzar simulación física
                     mujoco.mj_step(self.model, self.data)
                     
-                    # Actualizar cámara
-                    if self.model.nbody > 0 and self.config.camera.type == "free":
-                        try:
-                            camera.lookat = self.data.xpos[1].copy()  # Seguir al thorax
-                        except:
-                            pass
+                    # --- LÓGICA DE CÁMARA FOLLOW FLY CORREGIDA ---
+                    # Si follow_fly está activo, actualizamos el lookat de la cámara
+                    # independientemente de si la cámara es FIXED, FREE o ROTATING.
+                    if self.config.camera.follow_fly:
+                        target_pos = None
+                        if thorax_id >= 0:
+                            target_pos = self.data.xpos[thorax_id].copy()
+                        else:
+                            # Fallback al cuerpo 1 o root qpos
+                            target_pos = self.data.qpos[:3].copy()
+                        
+                        camera.lookat = target_pos
+                    # ----------------------------------------------
                     
-                    # Rotación de cámara si está configurada
+                    # Rotación de cámara si está configurada (se suma al azimuth actual)
                     camera.azimuth = self.config.camera.azimuth_start + idx * self.config.camera.azimuth_rotate
                     
                     # Renderizar

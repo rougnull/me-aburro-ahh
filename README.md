@@ -101,26 +101,42 @@ renderer.render_and_save("rf_highlight.mp4")
 ```python
 config = create_moldeable_render(
     camera_preset="top_view",
-    floor_enabled=False
+    floor_enabled=False,
+    width=1440,
+    height=1440
 )
-config.width = 1440
-config.height = 1440
 renderer = MuJoCoRenderer(config)
 renderer.render_and_save("topdown.mp4")
 ```
 
-### Ejemplo 5: Alta Calidad 4K
+### Ejemplo 5: Alta Calidad 4K a 60fps
 ```python
-config = create_moldeable_render(camera_preset="rotating")
-config.width = 3840
-config.height = 2160
-config.fps = 60
-config.quality = 10
+config = create_moldeable_render(
+    camera_preset="rotating",
+    width=3840,
+    height=2160,
+    fps=60,
+    quality=10,
+    subsample=1
+)
 renderer = MuJoCoRenderer(config)
 renderer.render_and_save("4k_60fps.mp4")
 ```
 
-### Ejemplo 6: Colores Personalizados
+### Ejemplo 6: Renderizado Rápido
+```python
+config = create_moldeable_render(
+    width=1280,
+    height=720,
+    fps=24,
+    subsample=10,  # Solo renderizar cada 10mo frame
+    quality=5
+)
+renderer = MuJoCoRenderer(config)
+renderer.render_and_save("quick_render.mp4")
+```
+
+### Ejemplo 7: Colores Personalizados
 ```python
 config = create_moldeable_render(
     custom_colors={
@@ -136,15 +152,82 @@ renderer = MuJoCoRenderer(config)
 renderer.render_and_save("rainbow.mp4")
 ```
 
+### Ejemplo 8: Iluminación Personalizada
+```python
+config = create_moldeable_render(
+    camera_preset="side_view",
+    floor_enabled=False,
+    ambient_light=(0.5, 0.5, 0.5),  # Más brillante
+    main_light_diffuse=(1.0, 1.0, 1.0),  # Luz principal intensa
+    fill_light_diffuse=(0.2, 0.2, 0.2)  # Luz de relleno suave
+)
+renderer = MuJoCoRenderer(config)
+renderer.render_and_save("custom_lighting.mp4")
+```
+
+### Ejemplo 9: Combinación Avanzada
+```python
+config = create_moldeable_render(
+    camera_preset="rotating",
+    camera_distance=15.0,
+    camera_elevation=-25,
+    highlight_leg="RF",
+    highlight_segment="Femur",
+    highlight_shadow_opacity=0.1,
+    width=1920,
+    height=1080,
+    fps=30,
+    subsample=5,
+    quality=9,
+    floor_size=(100, 100, 0.05),
+    floor_color=(0.1, 0.1, 0.1, 1.0)  # Suelo muy oscuro
+)
+renderer = MuJoCoRenderer(config)
+renderer.render_and_save("advanced.mp4")
+```
+
 ## ⚙️ Parámetros Configurables
 
-### Cámaras Disponibles
-```
-"side_view"    ← Vista lateral (excelente análisis)
-"top_view"     ← Vista superior (patrones de marcha)
-"rotating"     ← Rotación lenta (DEFAULT)
-"close_up"     ← Acercamiento (detalles)
-"iso_view"     ← Isométrica (análisis técnico)
+Todos los parámetros pueden configurarse a través de `create_moldeable_render()`:
+
+```python
+from src.core.config import create_moldeable_render
+
+config = create_moldeable_render(
+    # CÁMARA
+    camera_preset="rotating",          # "side_view", "top_view", "rotating", "close_up", "iso_view"
+    camera_distance=12.0,
+    camera_elevation=-15,
+    camera_azimuth_start=45,
+    camera_azimuth_rotate=0.5,
+    
+    # SUELO Y AMBIENTE
+    floor_enabled=True,
+    floor_size=(50, 50, 0.05),         # (x, y, z)
+    floor_color=(0.8, 0.9, 1.0, 1.0),  # (R, G, B, A)
+    ambient_light=(0.3, 0.3, 0.3),
+    main_light_diffuse=(0.8, 0.8, 0.8),
+    fill_light_diffuse=(0.4, 0.4, 0.4),
+    
+    # HIGHLIGHT (DESTACADO)
+    highlight_leg="RF",                 # "RF", "RM", "RH", "LF", "LM", "LH" o None
+    highlight_segment="Femur",          # "Coxa", "Femur", "Tibia", "Tarsus1" o None
+    highlight_shadow_opacity=0.3,
+    
+    # COLORES
+    custom_colors={
+        "RF": (1.0, 0.0, 0.0, 1.0),
+        "LF": (0.0, 0.0, 1.0, 1.0),
+    },
+    
+    # VIDEO Y RENDERIZADO
+    width=1920,                        # Ancho en píxeles
+    height=1080,                       # Alto en píxeles
+    fps=24,                            # Frames por segundo (24, 30, 60)
+    subsample=5,                       # 1=cada frame, 5=cada 5to frame (más rápido)
+    quality=9,                         # Calidad (1-10)
+    codec="libx264"
+)
 ```
 
 ### Patas (Para Highlight)
@@ -163,42 +246,6 @@ renderer.render_and_save("rainbow.mp4")
 "Femur"    ← Segunda articulación
 "Tibia"    ← Tercera articulación
 "Tarsus1"  ← Punta de pata
-```
-
-### Parámetros Principales
-```python
-config = RenderConfig()
-
-# Video
-config.width = 1920               # Ancho (píxeles)
-config.height = 1080              # Alto (píxeles)
-config.fps = 30                   # Frames por segundo (24, 30, 60)
-config.quality = 9                # Calidad (1-10)
-config.subsample = 5              # 1=cada frame, 5=cada 5to
-
-# Cámara
-config.camera.distance = 12.0     # Distancia
-config.camera.elevation = -15     # Ángulo vertical
-config.camera.azimuth_start = 45  # Ángulo horizontal
-config.camera.azimuth_rotate = 0.5  # Rotación por frame
-
-# Suelo
-config.environment.floor_enabled = True
-config.environment.floor_size = (50, 50, 0.05)  # (x, y, z)
-config.environment.floor_color = (0.8, 0.9, 1.0, 1.0)  # RGBA
-
-# Highlight
-config.highlight.leg = "RF"       # Destacar pata
-config.highlight.segment = "Femur"  # Destacar segmento
-config.highlight.shadow_opacity = 0.3  # Opacidad sombra
-
-# Iluminación
-config.environment.ambient_light = (0.3, 0.3, 0.3)
-config.environment.main_light_diffuse = (0.8, 0.8, 0.8)
-config.environment.fill_light_diffuse = (0.4, 0.4, 0.4)
-
-# Colores
-config.leg_colors.colors["RF"] = (1.0, 0.0, 0.0, 1.0)
 ```
 
 ## Troubleshooting
